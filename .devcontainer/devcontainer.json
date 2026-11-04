@@ -38,6 +38,7 @@
         "git.terminalAuthentication": false,
         "github.gitAuthentication": false,
         "remote.autoForwardPorts": false,
+        "remote.restoreForwardedPorts": false,
         "remote.defaultExtensionsIfInstalledLocally": []
       }
     }
