@@ -21,6 +21,12 @@ fail_closed() {
 trap fail_closed EXIT
 trap 'exit 1' INT TERM HUP
 
+# Start the VS Code socket cleanup first, so it runs even if the firewall setup fails.
+# setsid detaches it from sudo, so it runs purely as root and node can't signal it.
+if ! pgrep -u root -f '^/bin/bash /usr/local/bin/socket-cleanup.sh$' >/dev/null; then
+    setsid /usr/local/bin/socket-cleanup.sh </dev/null >/dev/null 2>&1 &
+fi
+
 # 1. Gather everything that needs the network BEFORE changing any rules
 
 # Extract Docker DNS info before any flushing

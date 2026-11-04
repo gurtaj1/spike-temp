@@ -1,0 +1,2 @@
+# Used in place of ~/.gitconfig, which VS Code can write to when it attaches.
+# Deliberately has no credential helper.

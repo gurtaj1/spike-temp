@@ -84,8 +84,20 @@ RUN chmod +x /usr/local/bin/init-firewall.sh && \
   echo "node ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/node-firewall && \
   chmod 0440 /etc/sudoers.d/node-firewall
 
+# Remove VS Code's links to the Mac. Root-owned, so node can't change these files.
+# Agents' commands run in zsh, and /etc/zsh/zshenv is read by every zsh. BASH_ENV (below)
+# covers non-interactive bash, and .bashrc covers interactive bash.
+COPY harden-env.sh /etc/harden-env.sh
+COPY agent-gitconfig /etc/agent-gitconfig
+COPY socket-cleanup.sh /usr/local/bin/socket-cleanup.sh
+RUN chmod 644 /etc/harden-env.sh /etc/agent-gitconfig && \
+  chmod 755 /usr/local/bin/socket-cleanup.sh && \
+  echo ". /etc/harden-env.sh" >> /etc/zsh/zshenv && \
+  sed -i '1i . /etc/harden-env.sh' /home/node/.bashrc
+
 # Install Claude and Bun as root
 RUN npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}
 ARG BUN_VERSION=1.4.4
 RUN curl -fsSL https://bun.sh/install | BUN_INSTALL=/usr/local bash -s "bun-v${BUN_VERSION}"
+ENV BASH_ENV=/etc/harden-env.sh
 USER node
