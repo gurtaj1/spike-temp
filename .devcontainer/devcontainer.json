@@ -29,9 +29,22 @@
           "zsh": {
             "path": "zsh"
           }
-        }
+        },
+        "terminal.integrated.shellIntegration.enabled": false,
+        "dev.containers.copyGitConfig": false,
+        "dev.containers.gitCredentialHelperConfigLocation": "none",
+        "dev.containers.dockerCredentialHelper": false,
+        "dev.containers.mountWaylandSocket": false,
+        "git.terminalAuthentication": false,
+        "github.gitAuthentication": false,
+        "remote.autoForwardPorts": false,
+        "remote.defaultExtensionsIfInstalledLocally": []
       }
     }
+  },
+  "forwardPorts": [],
+  "otherPortsAttributes": {
+    "onAutoForward": "ignore"
   },
   "remoteUser": "node",
   "mounts": [
@@ -39,11 +52,27 @@
     "source=claude-code-config-${devcontainerId},target=/home/node/.claude,type=volume"
   ],
   "containerEnv": {
-    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
     "NODE_OPTIONS": "--max-old-space-size=4096",
     "CLAUDE_CONFIG_DIR": "/home/node/.claude",
     "POWERLEVEL9K_DISABLE_GITSTATUS": "true",
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+  },
+  "remoteEnv": {
+    "SSH_AUTH_SOCK": "",
+    "GPG_AGENT_INFO": "",
+    "BROWSER": "",
+    "VSCODE_IPC_HOOK_CLI": null,
+    "VSCODE_GIT_IPC_HANDLE": null,
+    "GIT_ASKPASS": null,
+    "VSCODE_GIT_ASKPASS_MAIN": null,
+    "VSCODE_GIT_ASKPASS_NODE": null,
+    "VSCODE_GIT_ASKPASS_EXTRA_ARGS": null,
+    "REMOTE_CONTAINERS_IPC": null,
+    "REMOTE_CONTAINERS_SOCKETS": null,
+    "REMOTE_CONTAINERS_DISPLAY_SOCK": null,
+    "WAYLAND_DISPLAY": null,
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_CONFIG_GLOBAL": "/etc/agent-gitconfig"
   },
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
   "workspaceFolder": "/workspace",
