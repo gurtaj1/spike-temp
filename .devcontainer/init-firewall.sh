@@ -64,8 +64,7 @@ done < <(echo "$GH_CIDRS")
 DOMAIN_IPS=""
 for domain in \
     "registry.npmjs.org" \
-    "api.anthropic.com" \
-    "marketplace.visualstudio.com"; do
+    "api.anthropic.com"; do
     echo "Resolving $domain..."
     ips=$(dig +noall +answer A "$domain" | awk '$4 == "A" {print $5}')
     if [ -z "$ips" ]; then
@@ -138,8 +137,8 @@ while read -r ip; do
     ipset add -exist allowed-domains "$ip"
 done < <(printf '%s' "$DOMAIN_IPS")
 
-# Allow only specific outbound traffic to allowed domains
-iptables -A OUTPUT -m set --match-set allowed-domains dst -j ACCEPT
+# Allow only HTTPS to allowed domains
+iptables -A OUTPUT -p tcp --dport 443 -m set --match-set allowed-domains dst -j ACCEPT
 
 # Explicitly REJECT all other outbound traffic for immediate feedback
 iptables -A OUTPUT -j REJECT --reject-with icmp-admin-prohibited
