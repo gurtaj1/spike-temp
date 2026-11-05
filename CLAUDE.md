@@ -1,3 +1,17 @@
+## Folder layout
+
+This repo has two local clones on the Mac and a separate checks folder:
+
+- `~/Repos/spike-temp`: the agents' folder, mounted into the devcontainer. The container can write to its `.git`. Update it only from inside the container, with `git pull --ff-only https://github.com/gurtaj1/spike-temp.git main`.
+- `~/Repos/spike-temp-admin`: the safe clone, not mounted. All Mac-side commits, PR branches and merges happen here, over HTTPS.
+- `~/Repos/spike-checks`: check scripts and handoffs, in no repo and outside the mount.
+
+On the Mac:
+
+- Never run git in `~/Repos/spike-temp`, and never open it as a project in a tool that runs git in the background. Git there could run a hook or config planted from the container.
+- Open a Mac-side agent on `~/Repos/spike-temp-admin`.
+- Start VS Code with `~/Repos/spike-checks/open-vscode.sh`, not from the Dock. A normal launch forwards the Mac's SSH agent into the container.
+
 Default to using Bun instead of Node.js.
 
 - Use `bun <file>` instead of `node <file>` or `ts-node <file>`
