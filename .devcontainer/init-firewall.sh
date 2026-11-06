@@ -21,11 +21,10 @@ fail_closed() {
 trap fail_closed EXIT
 trap 'exit 1' INT TERM HUP
 
-# Start the VS Code socket cleanup first, so it runs even if the firewall setup fails.
-# setsid detaches it from sudo, so it runs purely as root and node can't signal it.
-if ! pgrep -u root -f '^/bin/bash /usr/local/bin/socket-cleanup.sh$' >/dev/null; then
-    setsid /usr/local/bin/socket-cleanup.sh </dev/null >/dev/null 2>&1 &
-fi
+# VS Code doesn't wait for this script, so block everything except root's traffic while
+# the lookups below run. The flush in step 2 removes these, after the policies are DROP.
+iptables -A OUTPUT -m owner ! --uid-owner 0 -j REJECT
+ip6tables -A OUTPUT -m owner ! --uid-owner 0 -j REJECT
 
 # 1. Gather everything that needs the network BEFORE changing any rules
 
@@ -47,7 +46,8 @@ done < <(echo "$DNS_SERVERS")
 
 # Fetch GitHub meta information and aggregate their IP ranges
 echo "Fetching GitHub IP ranges..."
-gh_ranges=$(curl -s https://api.github.com/meta)
+# A failed start stops the container, so allow for a slow network first
+gh_ranges=$(curl -fs --connect-timeout 5 --max-time 15 --retry 4 --retry-delay 2 --retry-all-errors https://api.github.com/meta || true)
 if [ -z "$gh_ranges" ]; then
     echo "ERROR: Failed to fetch GitHub IP ranges"
     exit 1
@@ -72,7 +72,14 @@ for domain in \
     "registry.npmjs.org" \
     "api.anthropic.com"; do
     echo "Resolving $domain..."
-    ips=$(dig +noall +answer A "$domain" | awk '$4 == "A" {print $5}')
+    ips=""
+    for attempt in 1 2 3 4 5; do
+        ips=$(dig +time=3 +tries=1 +noall +answer A "$domain" | awk '$4 == "A" {print $5}' || true)
+        if [ -n "$ips" ]; then
+            break
+        fi
+        sleep 2
+    done
     if [ -z "$ips" ]; then
         echo "ERROR: Failed to resolve $domain"
         exit 1
@@ -160,7 +167,7 @@ else
 fi
 
 # Verify GitHub API access
-if ! curl --connect-timeout 5 https://api.github.com/zen >/dev/null 2>&1; then
+if ! curl --connect-timeout 5 --max-time 10 --retry 3 --retry-delay 2 --retry-all-errors https://api.github.com/zen >/dev/null 2>&1; then
     echo "ERROR: Firewall verification failed - unable to reach https://api.github.com"
     exit 1
 else

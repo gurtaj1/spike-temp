@@ -10,7 +10,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   less \
   git \
   procps \
-  sudo \
   fzf \
   zsh \
   man-db \
@@ -50,7 +49,7 @@ WORKDIR /workspace
 ARG GIT_DELTA_VERSION=0.18.2
 RUN ARCH=$(dpkg --print-architecture) && \
   wget "https://github.com/dandavison/delta/releases/download/${GIT_DELTA_VERSION}/git-delta_${GIT_DELTA_VERSION}_${ARCH}.deb" && \
-  sudo dpkg -i "git-delta_${GIT_DELTA_VERSION}_${ARCH}.deb" && \
+  dpkg -i "git-delta_${GIT_DELTA_VERSION}_${ARCH}.deb" && \
   rm "git-delta_${GIT_DELTA_VERSION}_${ARCH}.deb"
 
 # Set up non-root user
@@ -77,12 +76,17 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
   -a "export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhistory/.bash_history" \
   -x
 
-# Copy and set up firewall script
-COPY init-firewall.sh /usr/local/bin/
+# Copy and set up the firewall script and the entrypoint that runs it
+COPY init-firewall.sh entrypoint.sh /usr/local/bin/
 USER root
-RUN chmod +x /usr/local/bin/init-firewall.sh && \
-  echo "node ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/node-firewall && \
-  chmod 0440 /etc/sudoers.d/node-firewall
+RUN chmod 755 /usr/local/bin/init-firewall.sh /usr/local/bin/entrypoint.sh
+
+# Agents run as their own user, so they can't reach VS Code's processes or sockets.
+# agent isn't in node's group. work is the group they share files through.
+RUN groupadd work && \
+  useradd -m -u 1001 agent && \
+  usermod -aG work node && \
+  usermod -aG work agent
 
 # Remove VS Code's links to the Mac. Root-owned, so node can't change these files.
 # Agents' commands run in zsh, and /etc/zsh/zshenv is read by every zsh. BASH_ENV (below)
@@ -101,3 +105,8 @@ ARG BUN_VERSION=1.4.4
 RUN curl -fsSL https://bun.sh/install | BUN_INSTALL=/usr/local bash -s "bun-v${BUN_VERSION}"
 ENV BASH_ENV=/etc/harden-env.sh
 USER node
+
+# containerUser in devcontainer.json runs this as root. Run as node, the firewall can't
+# start, so the container exits rather than starting open.
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["sleep", "infinity"]
