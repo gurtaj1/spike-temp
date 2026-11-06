@@ -11,7 +11,7 @@ The agents' copy of this repo lives in a Docker volume, not on the Mac:
 In the container:
 
 - VS Code and its terminals run as `node`. Agents run as `agent`, started from the Mac with `~/Repos/spike-checks/run-agent.sh`, never from a VS Code terminal.
-- Once agents have run, don't run git in a VS Code terminal. It would run as `node`, and an agent could have planted a hook or config in the workspace.
+- `agent` owns the repo, so git run as `node` refuses it with "dubious ownership". That's on purpose: otherwise a hook or config an agent planted would run as `node`. Don't add `/workspace` to `safe.directory`, and don't work around the refusal with `--git-dir` or from another folder in the workspace. Never run git in a VS Code terminal: use the admin clone instead.
 
 On the Mac:
 
