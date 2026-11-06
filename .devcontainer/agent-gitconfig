@@ -1,4 +1,3 @@
 # Used in place of ~/.gitconfig, which VS Code can write to when it attaches.
-# Deliberately has no credential helper.
-[safe]
-	directory = /workspace
+# Deliberately has no credential helper. Deliberately has no safe.directory: agent owns
+# the repo, and git run as node must keep refusing it.

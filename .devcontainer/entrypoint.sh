@@ -16,8 +16,10 @@ chmod 700 /commandhistory /home/node/.claude
 chown agent:agent /home/agent/.claude
 chmod 700 /home/agent/.claude
 
-# New files stay in group work and group-writable, whatever umask the tool has
-chown node:work /workspace
+# agent owns the repo, so git run as node refuses it before reading any of its config.
+# Otherwise something an agent planted there would run as node when a terminal opens.
+# New files stay in group work and group-writable, whatever umask the tool has.
+chown agent:work /workspace
 chmod 2775 /workspace
 setfacl -d -m u::rwx,g::rwx,o::rx /workspace
 

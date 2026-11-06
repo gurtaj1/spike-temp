@@ -106,6 +106,10 @@ RUN chmod 644 /etc/harden-env.sh /etc/agent-gitconfig && \
   echo ". /etc/harden-env.sh" >> /etc/zsh/zshenv && \
   sed -i '1i . /etc/harden-env.sh' /home/node/.bashrc
 
+# The prompt's git element would run git in the workspace, as node, on every prompt
+RUN sed -i 's/^POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(user dir vcs status)/POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(user dir status)/' /home/node/.zshrc && \
+  ! grep -q 'vcs' /home/node/.zshrc
+
 # Install Claude and Bun as root
 RUN npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}
 ARG BUN_VERSION=1.4.4
