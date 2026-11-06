@@ -11,7 +11,8 @@
   },
   "runArgs": [
     "--cap-add=NET_ADMIN",
-    "--cap-add=NET_RAW"
+    "--cap-add=NET_RAW",
+    "--security-opt=no-new-privileges"
   ],
   "customizations": {
     "vscode": {
@@ -47,7 +48,9 @@
   "otherPortsAttributes": {
     "onAutoForward": "ignore"
   },
+  "containerUser": "root",
   "remoteUser": "node",
+  "overrideCommand": false,
   "mounts": [
     "source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
     "source=claude-code-config-${devcontainerId},target=/home/node/.claude,type=volume"
@@ -76,8 +79,5 @@
     "GIT_CONFIG_GLOBAL": "/etc/agent-gitconfig"
   },
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
-  "workspaceFolder": "/workspace",
-  "onCreateCommand": "sudo /usr/local/bin/init-firewall.sh",
-  "postStartCommand": "sudo /usr/local/bin/init-firewall.sh",
-  "waitFor": "postStartCommand"
+  "workspaceFolder": "/workspace"
 }
