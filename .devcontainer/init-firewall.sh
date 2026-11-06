@@ -123,6 +123,14 @@ else
     echo "No Docker DNS rules to restore"
 fi
 
+# File permissions don't protect TCP, so stop agent reaching what node listens on: the
+# debugger's default ports, and the range the kernel assigns, which VS Code's ports come
+# from. This has to come before the rule that allows localhost. --syn matches only new
+# connections, because replies from agent's own servers also go to ports in that range.
+AGENT_BLOCKED_LOCAL_PORTS=9229:9230,32768:60999
+iptables -A OUTPUT -o lo -p tcp --syn -m owner --uid-owner agent -m multiport --dports "$AGENT_BLOCKED_LOCAL_PORTS" -j REJECT --reject-with tcp-reset
+ip6tables -A OUTPUT -o lo -p tcp --syn -m owner --uid-owner agent -m multiport --dports "$AGENT_BLOCKED_LOCAL_PORTS" -j REJECT --reject-with tcp-reset
+
 # Allow localhost
 iptables -A INPUT -i lo -j ACCEPT
 iptables -A OUTPUT -o lo -j ACCEPT
