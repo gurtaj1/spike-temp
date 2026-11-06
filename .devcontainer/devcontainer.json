@@ -17,7 +17,6 @@
   "customizations": {
     "vscode": {
       "extensions": [
-        "anthropic.claude-code",
         "oven.bun-vscode"
       ],
       "settings": {
@@ -57,6 +56,7 @@
     "source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
     "source=claude-code-config-${devcontainerId},target=/home/node/.claude,type=volume",
     "source=claude-agent-${devcontainerId},target=/home/agent/.claude,type=volume",
+    "source=spike-vscode-empty,target=/workspace/.vscode,type=volume,readonly",
     "source=${localEnv:HOME}/Repos/spike-outbox,target=/outbox,type=bind"
   ],
   "containerEnv": {
