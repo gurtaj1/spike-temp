@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   less \
   git \
   procps \
+  acl \
   fzf \
   zsh \
   man-db \
@@ -86,7 +87,13 @@ RUN chmod 755 /usr/local/bin/init-firewall.sh /usr/local/bin/entrypoint.sh
 RUN groupadd work && \
   useradd -m -u 1001 agent && \
   usermod -aG work node && \
-  usermod -aG work agent
+  usermod -aG work agent && \
+  mkdir -p /home/agent/.claude && \
+  chown agent:agent /home/agent/.claude && \
+  sed -i '1i . /etc/harden-env.sh' /home/agent/.bashrc && \
+  touch /home/agent/.zshrc && \
+  chown agent:agent /home/agent/.zshrc && \
+  chmod 700 /home/agent /home/agent/.claude /home/node
 
 # Remove VS Code's links to the Mac. Root-owned, so node can't change these files.
 # Agents' commands run in zsh, and /etc/zsh/zshenv is read by every zsh. BASH_ENV (below)

@@ -12,3 +12,6 @@ export SSH_AUTH_SOCK= GPG_AGENT_INFO= BROWSER=
 
 # Make git ignore the config files VS Code writes
 export GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/etc/agent-gitconfig
+
+# node and agent share files through group work
+umask 002

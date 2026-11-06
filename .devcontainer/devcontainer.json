@@ -36,6 +36,8 @@
         "dev.containers.gitCredentialHelperConfigLocation": "none",
         "dev.containers.dockerCredentialHelper": false,
         "dev.containers.mountWaylandSocket": false,
+        "git.enabled": false,
+        "task.allowAutomaticTasks": "off",
         "git.terminalAuthentication": false,
         "github.gitAuthentication": false,
         "remote.autoForwardPorts": false,
@@ -53,13 +55,17 @@
   "overrideCommand": false,
   "mounts": [
     "source=claude-code-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
-    "source=claude-code-config-${devcontainerId},target=/home/node/.claude,type=volume"
+    "source=claude-code-config-${devcontainerId},target=/home/node/.claude,type=volume",
+    "source=claude-agent-${devcontainerId},target=/home/agent/.claude,type=volume",
+    "source=${localEnv:HOME}/Repos/spike-outbox,target=/outbox,type=bind"
   ],
   "containerEnv": {
     "NODE_OPTIONS": "--max-old-space-size=4096",
-    "CLAUDE_CONFIG_DIR": "/home/node/.claude",
     "POWERLEVEL9K_DISABLE_GITSTATUS": "true",
-    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1"
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_CONFIG_GLOBAL": "/etc/agent-gitconfig",
+    "BASH_ENV": "/etc/harden-env.sh"
   },
   "remoteEnv": {
     "SSH_AUTH_SOCK": "",
@@ -78,6 +84,6 @@
     "GIT_CONFIG_NOSYSTEM": "1",
     "GIT_CONFIG_GLOBAL": "/etc/agent-gitconfig"
   },
-  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=delegated",
+  "workspaceMount": "source=spike-workspace,target=/workspace,type=volume",
   "workspaceFolder": "/workspace"
 }
