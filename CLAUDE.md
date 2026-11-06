@@ -1,16 +1,23 @@
 ## Folder layout
 
-This repo has two local clones on the Mac and a separate checks folder:
+The agents' copy of this repo lives in a Docker volume, not on the Mac:
 
-- `~/Repos/spike-temp`: the agents' folder, mounted into the devcontainer. The container can write to its `.git`. Update it only from inside the container, with `git pull --ff-only https://github.com/gurtaj1/spike-temp.git main`.
-- `~/Repos/spike-temp-admin`: the safe clone, not mounted. All Mac-side commits, PR branches and merges happen here, over HTTPS.
-- `~/Repos/spike-checks`: check scripts and handoffs, in no repo and outside the mount.
+- Docker volume `spike-workspace`: the agents' workspace, at `/workspace` in the devcontainer. No Mac tool can see it. Update it only from inside the container, with `git pull --ff-only https://github.com/gurtaj1/spike-temp.git main`.
+- `~/Repos/spike-temp-admin`: the safe clone, never mounted. VS Code reads `.devcontainer/` from here, so the container can't change it. All Mac-side commits, PR branches and merges happen here, over HTTPS.
+- `~/Repos/spike-outbox`: mounted at `/outbox`. Treat everything in it as untrusted.
+- `~/Repos/spike-checks`: check scripts and handoffs, in no repo and not mounted.
+- `~/Repos/spike-temp`: the old mounted folder, no longer used. Don't run git in it: the container could write to its `.git`.
+
+In the container:
+
+- VS Code and its terminals run as `node`. Agents run as `agent`, started from the Mac with `~/Repos/spike-checks/run-agent.sh`, never from a VS Code terminal.
+- Once agents have run, don't run git in a VS Code terminal. It would run as `node`, and an agent could have planted a hook or config in the workspace.
 
 On the Mac:
 
-- Never run git in `~/Repos/spike-temp`, and never open it as a project in a tool that runs git in the background. Git there could run a hook or config planted from the container.
 - Open a Mac-side agent on `~/Repos/spike-temp-admin`.
 - Start VS Code with `~/Repos/spike-checks/open-vscode.sh`, not from the Dock. A normal launch forwards the Mac's SSH agent into the container.
+- Rebuild only with `~/Repos/spike-temp-admin` clean and on `main`, because that's the config the container is built from.
 
 Default to using Bun instead of Node.js.
 
