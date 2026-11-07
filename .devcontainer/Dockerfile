@@ -100,9 +100,9 @@ RUN groupadd work && \
 # covers non-interactive bash, and .bashrc covers interactive bash.
 COPY harden-env.sh /etc/harden-env.sh
 COPY agent-gitconfig /etc/agent-gitconfig
-COPY socket-cleanup.sh /usr/local/bin/socket-cleanup.sh
+COPY socket-cleanup.sh git-credential-readonly /usr/local/bin/
 RUN chmod 644 /etc/harden-env.sh /etc/agent-gitconfig && \
-  chmod 755 /usr/local/bin/socket-cleanup.sh && \
+  chmod 755 /usr/local/bin/socket-cleanup.sh /usr/local/bin/git-credential-readonly && \
   echo ". /etc/harden-env.sh" >> /etc/zsh/zshenv && \
   sed -i '1i . /etc/harden-env.sh' /home/node/.bashrc
 
