@@ -65,6 +65,10 @@
     "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
     "GIT_CONFIG_NOSYSTEM": "1",
     "GIT_CONFIG_GLOBAL": "/etc/agent-gitconfig",
+    "GIT_AUTHOR_NAME": "agent",
+    "GIT_AUTHOR_EMAIL": "agent@localhost",
+    "GIT_COMMITTER_NAME": "agent",
+    "GIT_COMMITTER_EMAIL": "agent@localhost",
     "BASH_ENV": "/etc/harden-env.sh"
   },
   "remoteEnv": {

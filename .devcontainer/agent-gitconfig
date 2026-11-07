@@ -1,3 +1,7 @@
-# Used in place of ~/.gitconfig, which VS Code can write to when it attaches.
-# Deliberately has no credential helper. Deliberately has no safe.directory: agent owns
-# the repo, and git run as node must keep refusing it.
+# Used in place of ~/.gitconfig, which VS Code can write to when it attaches. Both agent and
+# node use this file. The helper only gives agent the token, because only agent can read it.
+# The empty helper line clears any helper set earlier. Deliberately has no safe.directory:
+# agent owns the repo, and git run as node must keep refusing it.
+[credential "https://github.com"]
+    helper =
+    helper = /usr/local/bin/git-credential-readonly
