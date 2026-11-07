@@ -1,7 +1,7 @@
 # Used in place of ~/.gitconfig, which VS Code can write to when it attaches. Both agent and
-# node use this file. The helper only gives agent the token, because only agent can read it.
-# The empty helper line clears any helper set earlier. Deliberately has no safe.directory:
-# agent owns the repo, and git run as node must keep refusing it.
-[credential "https://github.com"]
-    helper =
-    helper = /usr/local/bin/git-credential-readonly
+# node use this file. git reaches GitHub over SSH on port 443 with a read-only deploy key,
+# and only agent can read the key. Deliberately has no credential helper: a token can do
+# more than read. Deliberately has no safe.directory: agent owns the repo, and git run as
+# node must keep refusing it.
+[core]
+    sshCommand = ssh -F /dev/null -i /home/agent/.claude/github-deploy-key -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=/etc/github-known-hosts

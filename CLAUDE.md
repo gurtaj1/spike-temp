@@ -11,7 +11,7 @@ The agents' copy of this repo lives in a Docker volume, not on the Mac:
 In the container:
 
 - VS Code and its terminals run as `node`. Agents run as `agent`, started from the Mac with `~/Repos/spike-checks/run-agent.sh`, never from a VS Code terminal.
-- `agent` fetches and rebases over HTTPS with a read-only GitHub token, from `/home/agent/.claude/github-readonly-token` through `/usr/local/bin/git-credential-readonly`. Nothing in the container can push: the token can only read this repo.
+- `agent` fetches and rebases over SSH on port 443 with a read-only deploy key for this repo, from `/home/agent/.claude/github-deploy-key`. The container holds no GitHub token: a read-only fine-grained token could still open public issues, so don't add one.
 - `agent` owns the repo, so git run as `node` refuses it with "dubious ownership". That's on purpose: otherwise a hook or config an agent planted would run as `node`. Don't add `/workspace` to `safe.directory`, and don't work around the refusal with `--git-dir` or from another folder in the workspace. Never run git in a VS Code terminal: use the admin clone instead.
 - `/workspace/.vscode` is an empty read-only mount, so an agent can't write workspace settings that VS Code would apply as `node`. The repo can't carry its own `.vscode/` folder.
 - Dev Containers windows are always trusted, so Restricted Mode isn't available. Only open `/workspace` itself in VS Code, not a subfolder or a `.code-workspace` file, because an agent could have written those. The Claude extension isn't installed in the container for the same reason.
