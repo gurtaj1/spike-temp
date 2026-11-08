@@ -42,3 +42,6 @@ pnpm-debug.log*
 # Misc
 .cache/
 tmp/
+
+# Agents' worktrees, made in the container
+.worktrees/
