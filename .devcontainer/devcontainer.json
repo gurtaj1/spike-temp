@@ -9,6 +9,7 @@
       "ZSH_IN_DOCKER_VERSION": "1.2.0"
     }
   },
+  "init": true,
   "runArgs": [
     "--cap-add=NET_ADMIN",
     "--cap-add=NET_RAW",
@@ -41,7 +42,8 @@
         "github.gitAuthentication": false,
         "remote.autoForwardPorts": false,
         "remote.restoreForwardedPorts": false,
-        "remote.defaultExtensionsIfInstalledLocally": []
+        "remote.defaultExtensionsIfInstalledLocally": [],
+        "chat.disableAIFeatures": true
       }
     }
   },

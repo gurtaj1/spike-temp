@@ -161,6 +161,16 @@ done < <(printf '%s' "$DOMAIN_IPS")
 # Allow only HTTPS to allowed domains
 iptables -A OUTPUT -p tcp --dport 443 -m set --match-set allowed-domains dst -j ACCEPT
 
+# Information only. Counts, per user, what is about to be rejected, and records where it
+# was going in /proc/net/xt_recent/uid<N>. No target, so these change nothing.
+# check-hardening.sh expects them here, just before the REJECT.
+for uid in 0 1000 1001; do
+    iptables -A OUTPUT -m owner --uid-owner "$uid" -m comment --comment "count-uid-$uid" -m recent --name "uid$uid" --rdest --set
+    ip6tables -A OUTPUT -m owner --uid-owner "$uid" -m comment --comment "count-uid-$uid" -m recent --name "uid$uid-v6" --rdest --set
+done
+# The lists are created 0644, which would let agent read where root and node tried to go
+chmod 600 /proc/net/xt_recent/uid*
+
 # Explicitly REJECT all other outbound traffic for immediate feedback
 iptables -A OUTPUT -j REJECT --reject-with icmp-admin-prohibited
 ip6tables -A OUTPUT -j REJECT --reject-with icmp6-adm-prohibited
