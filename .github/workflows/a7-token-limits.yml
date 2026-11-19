@@ -66,10 +66,18 @@ jobs:
           st=$(jq -r '.result.status // "none"' "$B" 2>/dev/null)
           nb=$(jq -r '.result.not_before // "none"' "$B" 2>/dev/null)
           ex=$(jq -r '.result.expires_on // "none"' "$B" 2>/dev/null)
-          if [ "$code" = 200 ] && [ "$st" = active ]; then
-            ok "control: own account token verify, HTTP 200, status active, not_before $nb, expires_on $ex"
+          # "active" alone isn't enough: a token whose not_before is in the future verifies as
+          # active but is refused everywhere else. ISO 8601 UTC times compare as strings.
+          now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          valid=yes
+          [ "$nb" = none ] || [[ ! "$nb" > "$now" ]] || valid=no
+          [ "$ex" = none ] || [[ "$ex" > "$now" ]] || valid=no
+          if [ "$code" = 200 ] && [ "$st" = active ] && [ "$valid" = yes ]; then
+            ok "control: own account token verify, HTTP 200, status active, valid at $now, not_before $nb, expires_on $ex"
           else
-            bad "control: own account token verify, HTTP $code, status $st, errors [$(errs)], not_before $nb, expires_on $ex"
+            bad "control: own account token verify, HTTP $code, status $st, valid at $now: $valid, errors [$(errs)], not_before $nb, expires_on $ex"
+            echo "STOPPED: the token can't be used now, so the refusals below would test nothing."
+            exit 1
           fi
           for p in workers/scripts d1/database; do
             code=$(cf "/accounts/$OWN_ID/$p")
@@ -160,10 +168,18 @@ jobs:
           st=$(jq -r '.result.status // "none"' "$B" 2>/dev/null)
           nb=$(jq -r '.result.not_before // "none"' "$B" 2>/dev/null)
           ex=$(jq -r '.result.expires_on // "none"' "$B" 2>/dev/null)
-          if [ "$code" = 200 ] && [ "$st" = active ]; then
-            ok "control: own account token verify, HTTP 200, status active, not_before $nb, expires_on $ex"
+          # "active" alone isn't enough: a token whose not_before is in the future verifies as
+          # active but is refused everywhere else. ISO 8601 UTC times compare as strings.
+          now=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          valid=yes
+          [ "$nb" = none ] || [[ ! "$nb" > "$now" ]] || valid=no
+          [ "$ex" = none ] || [[ "$ex" > "$now" ]] || valid=no
+          if [ "$code" = 200 ] && [ "$st" = active ] && [ "$valid" = yes ]; then
+            ok "control: own account token verify, HTTP 200, status active, valid at $now, not_before $nb, expires_on $ex"
           else
-            bad "control: own account token verify, HTTP $code, status $st, errors [$(errs)], not_before $nb, expires_on $ex"
+            bad "control: own account token verify, HTTP $code, status $st, valid at $now: $valid, errors [$(errs)], not_before $nb, expires_on $ex"
+            echo "STOPPED: the token can't be used now, so the refusals below would test nothing."
+            exit 1
           fi
           for p in workers/scripts d1/database; do
             code=$(cf "/accounts/$OWN_ID/$p")
