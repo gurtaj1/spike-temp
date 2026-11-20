@@ -1,0 +1,12 @@
+# Stage C, C0.1 control: proves the workflow token can push a workflow file.
+# Never merged.
+name: c0-noop
+on:
+  workflow_dispatch:
+permissions: {}
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - run: echo "c0 noop"
