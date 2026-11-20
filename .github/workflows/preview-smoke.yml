@@ -104,11 +104,13 @@ jobs:
           BASE: https://spike2-app-pr-0.spike2-preview.workers.dev
         run: |
           set -uo pipefail
-          for i in $(seq 1 18); do
+          # A new workers.dev name can take minutes to go live: wait up to 5 minutes for /
+          for i in $(seq 1 60); do
             code=$(curl -q -s -o /dev/null -w '%{http_code}' --max-time 10 "$BASE/")
             [ "$code" = 200 ] && break
             sleep 5
           done
+          echo "waited about $((i * 5)) s for / (last HTTP $code)"
           fail=0
           for path in / /api/count; do
             hdrs=$(curl -q -s -D - -o /dev/null --max-time 10 "$BASE$path")
