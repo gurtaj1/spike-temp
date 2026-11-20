@@ -104,19 +104,24 @@ jobs:
           BASE: https://spike2-app-pr-0.spike2-preview.workers.dev
         run: |
           set -uo pipefail
-          # A new workers.dev name can take minutes to go live: wait up to 5 minutes for /
-          for i in $(seq 1 60); do
-            code=$(curl -q -s -o /dev/null -w '%{http_code}' --max-time 10 "$BASE/")
-            [ "$code" = 200 ] && break
+          # After a first deploy, the workers.dev name and the assets reach Cloudflare's edge
+          # unevenly for a few minutes, so the full check must pass 3 times in a row
+          check() {
+            local ok=0 line="" path hdrs code noindex
+            for path in / /api/count; do
+              hdrs=$(curl -q -s -D - -o /dev/null --max-time 10 "$BASE$path")
+              code=$(printf '%s\n' "$hdrs" | head -1 | awk '{print $2}')
+              noindex=$(printf '%s\n' "$hdrs" | grep -ci '^x-robots-tag: *noindex' || true)
+              line="$line $path HTTP ${code:-none}, X-Robots-Tag noindex headers $noindex;"
+              [ "$code" = 200 ] && [ "$noindex" = 1 ] || ok=1
+            done
+            echo "attempt $attempt:$line"
+            return "$ok"
+          }
+          passes=0
+          for attempt in $(seq 1 48); do
+            if check; then passes=$((passes + 1)); else passes=0; fi
+            [ "$passes" -ge 3 ] && break
             sleep 5
           done
-          echo "waited about $((i * 5)) s for / (last HTTP $code)"
-          fail=0
-          for path in / /api/count; do
-            hdrs=$(curl -q -s -D - -o /dev/null --max-time 10 "$BASE$path")
-            code=$(printf '%s\n' "$hdrs" | head -1 | awk '{print $2}')
-            noindex=$(printf '%s\n' "$hdrs" | grep -ci '^x-robots-tag: *noindex' || true)
-            echo "$path: HTTP $code, X-Robots-Tag noindex headers: $noindex"
-            [ "$code" = 200 ] && [ "$noindex" = 1 ] || fail=1
-          done
-          [ "$fail" = 0 ] && echo "preview check: pass" || { echo "preview check: FAIL"; exit 1; }
+          [ "$passes" -ge 3 ] && echo "preview check: pass" || { echo "preview check: FAIL"; exit 1; }
